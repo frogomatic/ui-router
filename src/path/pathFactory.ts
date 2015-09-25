@@ -78,8 +78,8 @@ export default class PathFactory {
       let node = path.nodeForState(state);
       return extend({}, node && node.ownParams);
     }
-    
-    /** 
+
+    /**
      * Given an IParamsNode "toNode", return a new IParamsNode with param values inherited from the
      * matching node in fromPath.  Only inherit keys that aren't found in "toKeys" from the node in "fromPath""
      */
@@ -94,7 +94,7 @@ export default class PathFactory {
       let ownParamVals: IRawParams = extend(toParamVals, fromParamVals, incomingParamVals);
       return { state: toNode.state, ownParams: ownParamVals };
     });
-    
+
     // The param keys specified by the incoming toParams
     return new Path(<IParamsNode[]> toPath.nodes().map(makeInheritedParamsNode(fromPath, toKeys)));
   }
