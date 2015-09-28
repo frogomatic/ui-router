@@ -1021,7 +1021,7 @@ UrlMatcher.prototype.format = function (values) {
     var param = paramset[name], value = param.value(values[name]);
     var isDefaultValue = param.isOptional && param.type.equals(param.value(), value);
     var squash = isDefaultValue ? param.squash : false;
-    var encoded = param.type.encode(value);
+    var encoded = (param.type.doesSlashEncode ? value : param.type.encode(value));
 
     if (isPathParam) {
       var nextSegment = segments[i + 1];
@@ -1240,6 +1240,7 @@ Type.prototype.$asArray = function(mode, isSearch) {
     this.decode = arrayHandler(bindTo(type, 'decode'));
     this.is     = arrayHandler(bindTo(type, 'is'), true);
     this.equals = arrayEqualsHandler(bindTo(type, 'equals'));
+    this.doesSlashEncode = type.doesSlashEncode;
     this.pattern = type.pattern;
     this.$normalize = arrayHandler(bindTo(type, '$normalize'));
     this.name = type.name;
@@ -1271,6 +1272,7 @@ function $UrlMatcherFactory() {
     string: {
       encode: valToString,
       decode: valFromString,
+      doesSlashEncode: true,
       // TODO: in 1.0, make string .is() return false if value is undefined/null by default.
       // In 0.2.x, string params are optional by default for backwards compat
       is: function(val) { return val == null || !isDefined(val) || typeof val === "string"; },
@@ -1279,6 +1281,7 @@ function $UrlMatcherFactory() {
     int: {
       encode: valToString,
       decode: function(val) { return parseInt(val, 10); },
+      doesSlashEncode: true,
       is: function(val) { return isDefined(val) && this.decode(val.toString()) === val; },
       pattern: /\d+/
     },
