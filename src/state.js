@@ -997,6 +997,7 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
       if (!toState.params.$$validates(toParams)) return TransitionFailed;
 
       toParams = toState.params.$$values(toParams);
+      var passthru = toParams.QUERYPARAMS;
       to = toState;
 
       var toPath = to.path;
@@ -1048,6 +1049,10 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
 
       // Filter parameters before we pass them to event handlers etc.
       toParams = filterByKeys(to.params.$$keys(), toParams || {});
+      if (passthru) {
+        var qphash = JSON.parse(passthru);
+        angular.forEach(qphash, function(val, key) { toParams[key] = val; });
+      }
 
       // Broadcast start event and cancel the transition if requested
       if (options.notify) {

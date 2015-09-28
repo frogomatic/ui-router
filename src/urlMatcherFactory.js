@@ -265,7 +265,12 @@ UrlMatcher.prototype.exec = function (path, searchParams) {
   }
   for (/**/; i < nTotal; i++) {
     paramName = paramNames[i];
-    values[paramName] = this.params[paramName].value(searchParams[paramName]);
+    if (paramName === 'QUERYPARAMS') {
+        values[paramName] = this.params[paramName].value(JSON.stringify(searchParams));
+    }
+    else {
+        values[paramName] = this.params[paramName].value(searchParams[paramName]);
+    }
   }
 
   return values;
@@ -333,9 +338,19 @@ UrlMatcher.prototype.format = function (values) {
     return encodeURIComponent(str).replace(/-/g, function(c) { return '%5C%' + c.charCodeAt(0).toString(16).toUpperCase(); });
   }
 
+  var addAll = false;
+  var clonedValues = angular.copy(values);
+
   for (i = 0; i < nTotal; i++) {
+    var name = params[i];
+    delete clonedValues[name];
+
+    if (name === 'QUERYPARAMS') {
+      addAll = true;
+      continue;
+    }
     var isPathParam = i < nPath;
-    var name = params[i], param = paramset[name], value = param.value(values[name]);
+    var param = paramset[name], value = param.value(values[name]);
     var isDefaultValue = param.isOptional && param.type.equals(param.value(), value);
     var squash = isDefaultValue ? param.squash : false;
     var encoded = param.type.encode(value);
@@ -368,6 +383,14 @@ UrlMatcher.prototype.format = function (values) {
       result += (search ? '&' : '?') + (name + '=' + encoded);
       search = true;
     }
+  }
+
+  if (addAll) {
+    angular.forEach(clonedValues, function(val, key) {
+      var encoded = encodeURIComponent(val);
+      result += (search ? '&' : '?') + (key + '=' + encoded);
+      search = true;
+    });
   }
 
   return result;
